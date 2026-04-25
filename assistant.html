@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trợ Lý — Duy Hoàng Dạy Toán</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="dashboard-page">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">📐 Duy Hoàng</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="slink active" data-page="overview">📊 Tổng quan</a>
+      <a href="#" class="slink" data-page="exams">📄 Tài liệu</a>
+      <a href="#" class="slink" data-page="videos">🎬 Video bài giảng</a>
+      <a href="#" class="slink" data-page="create-student">➕ Tạo tài khoản học sinh</a>
+      <a href="#" class="slink" data-page="students">👨‍🎓 Danh sách học sinh</a>
+      <a href="#" class="slink" data-page="security">🚨 Nhật ký cảnh báo <span id="alertNavBadge" class="nav-badge" style="display:none"></span></a>
+    </nav>
+    <a href="login.html" class="slink slink-logout" id="logoutBtn">🚪 Đăng xuất</a>
+  </aside>
+
+  <div class="dash-main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="topbar-right">
+        <div class="avatar-info">
+          <div class="avatar">TL</div>
+          <div>
+            <div class="av-name" id="assistantName"></div>
+            <div class="av-role">Trợ lý</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TỔNG QUAN -->
+    <section class="page active" id="pageOverview">
+      <h1 class="page-title">Tổng quan</h1>
+      <div class="stat-grid">
+        <div class="stat-card blue"><div class="stat-icon">📄</div><div><div class="stat-num" id="statExams">0</div><div class="stat-label">Tài liệu</div></div></div>
+        <div class="stat-card green"><div class="stat-icon">🎬</div><div><div class="stat-num" id="statVideos">0</div><div class="stat-label">Video</div></div></div>
+        <div class="stat-card purple"><div class="stat-icon">👨‍🎓</div><div><div class="stat-num" id="statStudents">0</div><div class="stat-label">Học sinh</div></div></div>
+        <div class="stat-card red"><div class="stat-icon">🚨</div><div><div class="stat-num" id="statAlerts">0</div><div class="stat-label">Cảnh báo hôm nay</div></div></div>
+      </div>
+      <div class="overview-grid">
+        <div class="overview-panel">
+          <div class="panel-header"><span>Tài liệu mới nhất</span><a href="#" class="link-blue" data-goto="exams">Xem tất cả</a></div>
+          <div id="recentExams"></div>
+        </div>
+        <div class="overview-panel">
+          <div class="panel-header"><span>Cảnh báo gần nhất</span><a href="#" class="link-blue" data-goto="security">Xem tất cả</a></div>
+          <div id="recentAlerts"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TÀI LIỆU -->
+    <section class="page" id="pageExams">
+      <div class="page-header">
+        <h1 class="page-title">Tài liệu</h1>
+        <label class="btn-primary" for="uploadExamInput">➕ Tải lên tài liệu
+          <input type="file" id="uploadExamInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" hidden/>
+        </label>
+      </div>
+      <div class="filter-bar">
+        <select id="examFilterClass"><option value="">Tất cả lớp</option></select>
+      </div>
+      <div class="content-list" id="examList"></div>
+      <div class="empty-state" id="emptyExams">Chưa có tài liệu nào.</div>
+    </section>
+
+    <!-- VIDEO -->
+    <section class="page" id="pageVideos">
+      <div class="page-header">
+        <h1 class="page-title">Video bài giảng</h1>
+        <label class="btn-primary" for="uploadVideoInput">➕ Tải lên video
+          <input type="file" id="uploadVideoInput" accept="video/*" hidden/>
+        </label>
+      </div>
+      <div class="filter-bar">
+        <select id="videoFilterClass"><option value="">Tất cả lớp</option></select>
+      </div>
+      <div class="video-grid" id="videoGrid"></div>
+      <div class="empty-state" id="emptyVideos">Chưa có video nào.</div>
+    </section>
+
+    <!-- TẠO TÀI KHOẢN -->
+    <section class="page" id="pageCreateStudent">
+      <h1 class="page-title">Tạo tài khoản học sinh</h1>
+      <div class="two-col">
+        <div class="form-panel">
+          <h3>Thông tin tài khoản</h3>
+          <label>Họ và tên</label>
+          <input type="text" id="csName" placeholder="Nhập họ và tên..."/>
+          <label>Gmail (tên đăng nhập)</label>
+          <input type="text" id="csUsername" placeholder="VD: hocsinh@gmail.com"/>
+          <label>Số báo danh (mật khẩu)</label>
+          <input type="password" id="csPassword" placeholder="Nhập số báo danh..."/>
+          <label>Lớp</label>
+          <input type="text" id="csClass" placeholder="VD: Lớp 9A"/>
+          <div id="csError" class="error-msg"></div>
+          <div class="form-actions">
+            <button class="btn-outline" id="csResetBtn">Hủy</button>
+            <button class="btn-primary" id="csSaveBtn">Tạo tài khoản</button>
+          </div>
+        </div>
+        <div class="form-panel">
+          <h3>Danh sách tài khoản đã tạo</h3>
+          <table class="mini-table">
+            <thead><tr><th>STT</th><th>Họ tên</th><th>Gmail</th><th>Lớp</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody id="miniStudentBody"></tbody>
+          </table>
+          <div class="table-pagination" id="miniPagination"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DANH SÁCH HỌC SINH -->
+    <section class="page" id="pageStudents">
+      <div class="page-header">
+        <h1 class="page-title">Danh sách học sinh</h1>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="studentSearch" placeholder="🔍 Tìm kiếm..."/>
+        <select id="studentFilterClass"><option value="">Tất cả lớp</option></select>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Họ tên</th><th>Gmail</th><th>Lớp</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+        <tbody id="studentBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyStudents">Chưa có học sinh nào.</div>
+    </section>
+
+    <!-- NHẬT KÝ CẢNH BÁO -->
+    <section class="page" id="pageSecurity">
+      <div class="page-header">
+        <h1 class="page-title">Nhật ký cảnh báo</h1>
+        <button class="btn-outline" id="clearAlertsBtn">🗑 Xóa tất cả</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="alertSearch" placeholder="🔍 Tìm theo tên học sinh..."/>
+      </div>
+      <div class="content-list" id="alertList"></div>
+      <div class="empty-state" id="emptyAlerts">Chưa có cảnh báo nào.</div>
+    </section>
+  </div>
+
+  <!-- MODAL: Upload Tài liệu -->
+  <div class="modal-overlay" id="examModal">
+    <div class="modal">
+      <h2>Tải lên tài liệu</h2>
+      <div class="upload-drop">
+        <div class="upload-icon">☁️</div>
+        <p>Kéo thả file vào đây</p>
+        <p class="upload-hint">Hỗ trợ PDF, DOCX, ảnh</p>
+        <div id="examFileInfo" class="file-info"></div>
+      </div>
+      <label>Tiêu đề</label>
+      <input type="text" id="eTitleInput" placeholder="Nhập tiêu đề..."/>
+      <label>Lớp</label>
+      <select id="eClassSelect"><option value="">-- Tất cả lớp --</option></select>
+      <label>Ngày</label>
+      <input type="date" id="eDateInput"/>
+      <div class="modal-actions">
+        <button id="eCancelBtn" class="btn-outline">Hủy</button>
+        <button id="eSaveBtn" class="btn-primary">Tải lên</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Upload Video -->
+  <div class="modal-overlay" id="videoModal">
+    <div class="modal">
+      <h2>Tải lên video bài giảng</h2>
+      <div class="preview-wrap"><video id="previewVideo" controls></video></div>
+      <label>Tiêu đề</label>
+      <input type="text" id="vTitleInput" placeholder="Tên buổi học..."/>
+      <label>Lớp</label>
+      <select id="vClassSelect"><option value="">-- Tất cả lớp --</option></select>
+      <label>Ngày</label>
+      <input type="date" id="vDateInput"/>
+      <div class="modal-actions">
+        <button id="vCancelBtn" class="btn-outline">Hủy</button>
+        <button id="vSaveBtn" class="btn-primary">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Sửa học sinh -->
+  <div class="modal-overlay" id="editStudentModal">
+    <div class="modal">
+      <h2>Chỉnh sửa tài khoản</h2>
+      <label>Họ và tên</label>
+      <input type="text" id="esName"/>
+      <label>Gmail</label>
+      <input type="text" id="esUsername"/>
+      <label>Số báo danh mới <span class="muted">(để trống nếu không đổi)</span></label>
+      <input type="password" id="esPassword"/>
+      <label>Lớp</label>
+      <input type="text" id="esClass"/>
+      <div id="esError" class="error-msg"></div>
+      <div class="modal-actions">
+        <button id="esCancelBtn" class="btn-outline">Hủy</button>
+        <button id="esSaveBtn" class="btn-primary">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Viewer -->
+  <div class="modal-overlay" id="viewerModal">
+    <div class="modal viewer-modal">
+      <button class="modal-close" id="closeViewer">✕</button>
+      <h2 id="viewerTitle"></h2>
+      <div id="viewerBody"></div>
+      <div class="modal-actions" style="margin-top:.75rem">
+        <a id="viewerDownload" class="btn-outline" download>⬇ Tải xuống</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assistant.js"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Học Sinh — Duy Hoàng Dạy Toán</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="dashboard-page">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">📐 Duy Hoàng</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="slink active" data-page="home">🏠 Trang chủ</a>
+      <a href="#" class="slink" data-page="exams">📄 Tài liệu</a>
+      <a href="#" class="slink" data-page="videos">🎬 Video bài giảng</a>
+      <a href="#" class="slink" data-page="profile">👤 Hồ sơ</a>
+    </nav>
+    <a href="login.html" class="slink slink-logout" id="logoutBtn">🚪 Đăng xuất</a>
+  </aside>
+
+  <div class="dash-main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="topbar-right">
+        <div class="avatar-info">
+          <div class="avatar">HS</div>
+          <div>
+            <div class="av-name" id="studentName"></div>
+            <div class="av-role">Học sinh</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TRANG CHỦ -->
+    <section class="page active" id="pageHome">
+      <h1 class="page-title" id="welcomeTitle">Chào mừng!</h1>
+      <div class="overview-grid">
+        <div class="overview-panel">
+          <div class="panel-header"><span>Tài liệu mới nhất</span><a href="#" class="link-blue" data-goto="exams">Xem tất cả</a></div>
+          <div id="homeRecentExams"></div>
+        </div>
+        <div class="overview-panel">
+          <div class="panel-header"><span>Video bài giảng mới nhất</span><a href="#" class="link-blue" data-goto="videos">Xem tất cả</a></div>
+          <div id="homeRecentVideos"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TÀI LIỆU -->
+    <section class="page" id="pageExams">
+      <div class="page-header">
+        <h1 class="page-title">Tài liệu</h1>
+      </div>
+      <div class="content-list" id="studentExamList"></div>
+      <div class="empty-state" id="emptyExams">Chưa có tài liệu nào.</div>
+    </section>
+
+    <!-- VIDEO -->
+    <section class="page" id="pageVideos">
+      <div class="page-header">
+        <h1 class="page-title">Video bài giảng</h1>
+      </div>
+      <div class="video-grid" id="studentVideoGrid"></div>
+      <div class="empty-state" id="emptyVideos">Chưa có video nào.</div>
+    </section>
+
+    <!-- HỒ SƠ -->
+    <section class="page" id="pageProfile">
+      <h1 class="page-title">Hồ sơ</h1>
+      <div class="profile-card">
+        <div class="profile-avatar">HS</div>
+        <div class="profile-info">
+          <div class="profile-name" id="profileName"></div>
+          <div class="profile-role">Học sinh</div>
+          <div class="profile-class" id="profileClass"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL: Xem đề / video -->
+  <div class="modal-overlay" id="viewerModal">
+    <div class="modal viewer-modal">
+      <button class="modal-close" id="closeViewer">✕</button>
+      <h2 id="viewerTitle"></h2>
+      <div id="viewerBody"></div>
+      <div class="modal-actions" style="margin-top:.75rem">
+        <a id="viewerDownload" class="btn-outline" download>⬇ Tải xuống</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY OVERLAY -->
+  <div id="securityOverlay">
+    <div class="sec-box">
+      <div class="sec-icon">🔒</div>
+      <h2>Cảnh báo bảo mật</h2>
+      <p>Hành vi chụp màn hình hoặc chuyển ứng dụng đã bị phát hiện.<br/>Nội dung bị ẩn để bảo vệ tài liệu.</p>
+      <button id="secDismiss">Tôi hiểu, quay lại học</button>
+    </div>
+  </div>
+
+  <script src="student.js"></script>
+  <script>
+    const overlay = document.getElementById('securityOverlay');
+    const dismiss = document.getElementById('secDismiss');
+
+    // Cooldown để tránh log trùng liên tiếp (3 giây)
+    let lastLogTime = 0;
+
+    function logAlert(reason) {
+      const now = Date.now();
+      if (now - lastLogTime < 3000) return;
+      lastLogTime = now;
+      const me = JSON.parse(localStorage.getItem('dh_students') || '[]')
+        .find(s => s.username === sessionStorage.getItem('dh_user')) || {};
+      const log = JSON.parse(localStorage.getItem('dh_alerts') || '[]');
+      log.unshift({
+        id: now, ts: now,
+        username: sessionStorage.getItem('dh_user') || '—',
+        studentName: me.full_name || sessionStorage.getItem('dh_name') || '—',
+        class_name: me.class_name || '',
+        reason
+      });
+      localStorage.setItem('dh_alerts', JSON.stringify(log.slice(0, 200)));
+    }
+
+    function showOverlay(reason) {
+      logAlert(reason);
+      overlay.classList.add('active');
+    }
+
+    function hideOverlay() { overlay.classList.remove('active'); }
+    dismiss.addEventListener('click', hideOverlay);
+
+    // Chặn chuột phải
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Chuyển tab hoặc ẩn cửa sổ
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) showOverlay('Chuyển tab / ẩn cửa sổ');
+    });
+
+    // Mất focus (Alt+Tab, Snipping Tool, tool chụp bên thứ 3)
+    window.addEventListener('blur', () => showOverlay('Mất focus — có thể đang chụp màn hình'));
+
+    // PrintScreen: làm đen màn hình NGAY LẬP TỨC trước khi Windows kịp chụp
+    document.addEventListener('keydown', e => {
+      const blocked =
+        e.key === 'PrintScreen' ||
+        e.key === 'F13' || // một số bàn phím map PrintScreen sang F13
+        (e.metaKey && e.shiftKey && ['3','4','5','6'].includes(e.key)) || // Mac
+        (e.ctrlKey && e.key === 'p') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'S');
+
+      if (blocked) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        // Làm đen toàn bộ body ngay lập tức (trước khi Windows chụp)
+        document.body.style.filter = 'brightness(0)';
+        showOverlay('Phím chụp màn hình (PrintScreen)');
+        setTimeout(() => { document.body.style.filter = ''; }, 500);
+      }
+    }, true); // capture phase để bắt sớm nhất
+
+    document.addEventListener('keyup', e => {
+      if (e.key === 'PrintScreen') {
+        navigator.clipboard?.writeText('').catch(() => {});
+        document.body.style.filter = '';
+        showOverlay('Phím PrintScreen nhả');
+      }
+    });
+  </script>
+</body>
+</html>
